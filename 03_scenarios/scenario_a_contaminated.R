@@ -1,0 +1,63 @@
+# Scenario A: bounded beta densities, constant precision. Contaminated.
+# beta = (-1, -2), gamma = (5); mu in (0.05, 0.27), phi = exp(5) ~= 148.
+# The 5% observations with the smallest mu are replaced by draws with
+# mu*_i = (1 + mu_i) / 2.
+
+rm(list = ls())
+
+# Run with the working directory set to 03_scenarios/
+source("00_scenario_utils.R")
+
+X_matrix <- read.table("data/X_matrix_40.txt", header = TRUE)
+
+sample_sizes <- c(40, 80, 160, 320, 1200)
+N <- 10000
+beta  <- c(-1, -2)
+gamma <- c(5)
+theta <- c(beta, gamma)
+p <- length(beta); q <- length(gamma)
+param_names <- c("beta1", "beta2", "gamma1")
+
+hypotheses <- list(
+  make_hypothesis("h1", p, q, idx_beta = 2, beta_fix = beta[2],
+                   test_idx = 2, theta0 = beta[2]),
+  make_hypothesis("h2", p, q, idx_gamma = 1, gamma_fix = gamma[1],
+                   test_idx = 3, theta0 = gamma[1]),
+  make_hypothesis("h3", p, q, idx_beta = c(1, 2), beta_fix = beta,
+                   test_idx = c(1, 2), theta0 = beta),
+  make_hypothesis("h4", p, q, idx_beta = c(1, 2), beta_fix = beta,
+                   idx_gamma = 1, gamma_fix = gamma,
+                   test_idx = c(1, 2, 3), theta0 = theta)
+)
+
+generate_data <- function(X, Z, beta, gamma) {
+  p_cont <- 0.05 # kept local: closures over free globals aren't exported to parallel workers
+  n <- nrow(X)
+  mu <- exp(X %*% beta) / (1 + exp(X %*% beta))
+  phi <- exp(Z %*% gamma)
+  y <- rbeta(n, mu * phi, (1 - mu) * phi)
+
+  n_cont <- round(p_cont * n)
+  idx <- order(mu)[1:n_cont]
+  mu_cont <- (mu[idx] + 1) / 2
+  y[idx] <- rbeta(n_cont, mu_cont * phi[idx], (1 - mu_cont) * phi[idx])
+  y
+}
+
+for (n in sample_sizes) {
+  X <- build_X(X_matrix, n)
+  Z <- matrix(rep(1, n), ncol = 1)
+
+  cfg <- list(
+    scenario_name = "Scenario A - contaminated",
+    n = n, N = N, beta = beta, gamma = gamma,
+    X = X, Z = Z,
+    param_names = param_names, hypotheses = hypotheses,
+    generate_data = generate_data,
+    seed_base = 123,
+    use_parallel = TRUE, n_cores = NULL,
+    output_file = paste0("Results/scenario_a_contaminated_n", n, ".txt")
+  )
+
+  run_scenario(cfg)
+}
