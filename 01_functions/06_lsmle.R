@@ -307,13 +307,11 @@ LSMLE_BETA <- function(y, X, Z, qoptimal=TRUE, q0=1, m=3, L=0.02, qmin=0.5,
   theta_mle_full <- SV$theta_hat_full # Completing the theta vector 
   
   
-  #----------------------REMOVE----------------------------# 
+  # MLE standard errors - needed below as the starting point (se_smleI[,1])
+  # for the qoptimal=TRUE adaptive grid search's stability check (SQV)
   vcov <- solve(SV$fisher_info)
   vcov <- vcov[idx_all_free, idx_all_free, drop = FALSE]
   se_mle <- suppressWarnings(sqrt(diag(vcov)))
-  z_mle <- as.matrix(theta_mle / se_mle)
-  #print(se_mle)
-  #----------------------REMOVE----------------------------#
   
   
   

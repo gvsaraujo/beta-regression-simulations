@@ -48,8 +48,8 @@ MLE_BETA <- function(y, X, Z, linkmu="logit", linkphi="log", method = "BFGS",
     theta_hat_full <- c(beta_fix, gamma_fix) # Combine fixed parameters
     
     results <- list(theta_hat_full = theta_hat_full, # Full parameter estimates
-                    score = Score_LSMLE(theta_hat_full, y=y, X=X, Z=Z, alpha_const = 0, linkmu=linkmu, linkphi=linkphi), # Score vector
-                    fisher_info = fisher_info_beta_regression(y, X, Z, theta_hat_full) # Fisher information matrix
+                    score = score_beta_regression(y, X, Z, theta_hat_full, linkmu=linkmu, linkphi=linkphi), # Score vector
+                    fisher_info = fisher_info_beta_regression(y, X, Z, theta_hat_full, linkmu=linkmu, linkphi=linkphi) # Fisher information matrix
     )
     return(results) # Return results
   }
@@ -66,9 +66,7 @@ MLE_BETA <- function(y, X, Z, linkmu="logit", linkphi="log", method = "BFGS",
     
     if (!is.null(gamma_fix)) gamma_full[idx_gamma] <- gamma_fix
     if (q_free > 0) gamma_full[idx_gamma_free] <- theta_free[(p_free + 1):(p_free + q_free)]
-    
-    eta_mu <- as.vector(X %*% beta_full)
-    eta_phi <- as.vector(Z %*% gamma_full)
+
     mu <- mean_link(beta = beta_full, y = y, X = X, linkmu = linkmu)$mu
     phi <- precision_link(gama = gamma_full, Z = Z, linkphi = linkphi)$phi
     
@@ -104,12 +102,11 @@ MLE_BETA <- function(y, X, Z, linkmu="logit", linkphi="log", method = "BFGS",
   if (!is.null(gamma_fix)) theta_hat_full[p_total + idx_gamma] <- gamma_fix
   if (q_free > 0) theta_hat_full[p_total + idx_gamma_free] <- theta_hat[(p_free + 1):(p_free + q_free)]
 
-  U_hat_full <- Score_LSMLE(theta_hat_full, y=y, X=X, Z=Z, alpha_const = 0, linkmu=linkmu, linkphi=linkphi) # Score vector
-  I_hat_full <- fisher_info_beta_regression(y, X, Z, theta_hat_full)
+  U_hat_full <- score_beta_regression(y, X, Z, theta_hat_full, linkmu=linkmu, linkphi=linkphi) # Score vector
+  I_hat_full <- fisher_info_beta_regression(y, X, Z, theta_hat_full, linkmu=linkmu, linkphi=linkphi)
 
   list(
     theta_hat = theta_hat,
-    #theta_hat_full = theta_hat_full,
     theta_hat_full = theta_hat_full,
     score = U_hat_full,
     fisher_info = I_hat_full)

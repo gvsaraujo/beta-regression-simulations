@@ -275,7 +275,7 @@ LMDPDE_BETA <- function(y, X, Z, qoptimal=TRUE, q0=1, m=3, L=0.02, qmin=0.5,
 
     Omegan_betabeta <- ((1 + alpha_const)^2.0)*crossprod(X_full, X_full*(gama11_2alpha - gama1_alpha^2.0))
     Omegan_betagamma <- ((1 + alpha_const)^2.0)*crossprod(X_full, Z_full*(gama12_2alpha - gama1_alpha*gama2_alpha))
-    Omegan_gammagamma <- ((1 + alpha_const)^2.0)*crossprod(Z_full, Z*(gama22_2alpha - gama2_alpha^2.0))
+    Omegan_gammagamma <- ((1 + alpha_const)^2.0)*crossprod(Z_full, Z_full*(gama22_2alpha - gama2_alpha^2.0))
     Omegan <- matrix(numeric(0), kk1+kk2, kk1+kk2)
     Omegan[1:kk1,1:kk1] <- Omegan_betabeta
     Omegan[1:kk1,(kk1+1):(kk1+kk2)] <- Omegan_betagamma 
@@ -346,13 +346,11 @@ LMDPDE_BETA <- function(y, X, Z, qoptimal=TRUE, q0=1, m=3, L=0.02, qmin=0.5,
   theta_mle <- SV$theta_hat # Parameters estimated via MLE
   theta_mle_full <- SV$theta_hat_full # Completing the theta vector 
   
-  #----------------------REMOVE----------------------------# 
+  # MLE standard errors - needed below as the starting point (se_smleI[,1])
+  # for the qoptimal=TRUE adaptive grid search's stability check (SQV)
   vcov <- solve(SV$fisher_info)
   vcov <- vcov[idx_all_free, idx_all_free, drop = FALSE]
   se_mle <- suppressWarnings(sqrt(diag(vcov)))
-  z_mle <- as.matrix(theta_mle / se_mle)
-  #print(se_mle)
-  #----------------------REMOVE----------------------------#
   
   #------------------------------->For fixed q<----------------------------------#
   if(qoptimal==FALSE){# Starting with qoptimal = FALSE

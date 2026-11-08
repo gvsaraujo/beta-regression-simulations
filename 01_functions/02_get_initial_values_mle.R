@@ -24,9 +24,11 @@ initial_values_beta_model <- function(y, X, Z, linkmu = "logit",
   
   # Residuals
   residuals <- yg1 - eta_hat
-  
-  # Derivative of the inverse link evaluated at mu_hat
-  g_prime <- link_info$T_1
+
+  # Derivative of the inverse link evaluated at mu_hat (NOT at the beta=0
+  # reference used above just to get yg1 - re-evaluating mean_link at
+  # beta_init matches T_1 to the eta_hat/mu_hat actually used for residuals)
+  g_prime <- mean_link(beta = beta_init, y = y, X = X, linkmu = linkmu)$T_1
   
   # Variance estimator
   sigma2 <- (residuals^2) / ((n - p) * (g_prime^2))

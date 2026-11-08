@@ -17,11 +17,6 @@ mean_link <- function(beta, y, X, linkmu="logit"){
     T_1 <- (mu - 1)*log(1 - mu)
     yg1 <- log(-log(1-y))
   }
-  if(linkmu == "log"){
-    mu <- exp(eta)
-    T_1 <- mu
-    yg1 <- log(y)
-  }
   if(linkmu == "loglog"){
     mu <- exp(-exp(-eta))
     T_1 <- -mu*log(mu)
@@ -38,18 +33,10 @@ mean_link <- function(beta, y, X, linkmu="logit"){
 
 precision_link <- function(gama, Z, linkphi="log"){
 
-  n <- nrow(Z);  delta <- as.vector(Z%*%gama)
+  delta <- as.vector(Z%*%gama)
   if(linkphi == "log"){
     phi <- exp(delta)
     T_2 <- phi
-  }
-  if(linkphi == "identify"){
-    phi <- delta
-    T_2 <- rep(1,n)
-  }
-  if(linkphi == "sqrt"){
-    phi <- delta^2
-    T_2 <- 2*sqrt(phi)
   }
   results <- list(phi=phi, T_2=T_2)
   return(results)
